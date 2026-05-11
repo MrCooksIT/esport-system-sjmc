@@ -15,12 +15,16 @@ export default function AdminPage() {
   const [qrOpen, setQrOpen] = useState<number | null>(null);
 
   async function load() {
-    const [active, all] = await Promise.all([
-      fetch("/api/devices").then((r) => r.json()),
-      fetch("/api/devices?all=true").then((r) => r.json()),
-    ]);
-    setDevices(active);
-    setAllDevices(all.length ? all : active);
+    try {
+      const [active, all] = await Promise.all([
+        fetch("/api/devices").then((r) => r.json()),
+        fetch("/api/devices?all=true").then((r) => r.json()),
+      ]);
+      setDevices(Array.isArray(active) ? active : []);
+      setAllDevices(Array.isArray(all) ? all : []);
+    } catch {
+      setError("Failed to load devices. Check the server is running.");
+    }
   }
 
   useEffect(() => { load(); }, []);
@@ -136,7 +140,7 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {devices.map((d) => (
+              {allDevices.map((d) => (
                 <tr key={d.id} className={`${d.active ? "bg-gray-950" : "bg-gray-900/50 opacity-60"}`}>
                   <td className="px-4 py-3 font-medium">
                     {d.type === "keyboard" ? "⌨️" : "🖱️"} {d.name}
