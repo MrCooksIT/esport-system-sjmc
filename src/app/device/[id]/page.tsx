@@ -1,0 +1,148 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+type Device = { id: number; name: string; type: string };
+type Checkout = { id: number; playerName: string; checkedOutAt: string; device: Device };
+
+export default function DevicePage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [checkout, setCheckout] = useState<Checkout | null | undefined>(undefined);
+  const [device, setDevice] = useState<Device | null>(null);
+  const [playerName, setPlayerName] = useState("");
+  const [pin, setPin] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    params.then(({ id }) => setDeviceId(id));
+  }, [params]);
+
+  useEffect(() => {
+    if (!deviceId) return;
+    Promise.all([
+      fetch("/api/checkouts").then((r) => r.json()),
+      fetch("/api/devices").then((r) => r.json()),
+    ]).then(([checkouts, devices]: [Checkout[], Device[]]) => {
+      const co = checkouts.find((c) => c.device.id === Number(deviceId));
+      const dev = devices.find((d) => d.id === Number(deviceId));
+      setCheckout(co ?? null);
+      setDevice(dev ?? null);
+    });
+  }, [deviceId]);
+
+  async function handleCheckout(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!playerName.trim()) return;
+    setLoading(true);
+    const res = await fetch("/api/checkouts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceId: Number(deviceId), playerName }),
+    });
+    setLoading(false);
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error ?? "Failed");
+      return;
+    }
+    router.push("/");
+  }
+
+  async function handleReturn() {
+    if (!checkout) return;
+    setError("");
+    setLoading(true);
+    const res = await fetch(`/api/checkouts/${checkout.id}/return`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin }),
+    });
+    setLoading(false);
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error ?? "Failed");
+      return;
+    }
+    router.push("/");
+  }
+
+  if (checkout === undefined || !deviceId) {
+    return <p className="text-gray-500 text-sm">Loading...</p>;
+  }
+
+  if (!device) {
+    return <p className="text-red-400">Device not found.</p>;
+  }
+
+  const icon = device.type === "keyboard" ? "⌨️" : "🖱️";
+
+  return (
+    <div className="max-w-md mx-auto space-y-6">
+      <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800 text-center">
+        <div className="text-5xl mb-3">{icon}</div>
+        <h1 className="text-2xl font-bold">{device.name}</h1>
+        <p className="text-gray-400 text-sm mt-1 capitalize">{device.type}</p>
+      </div>
+
+      {checkout ? (
+        <div className="space-y-4">
+          <div className="bg-red-950/50 border border-red-800 rounded-xl p-4">
+            <p className="text-sm text-red-300">Currently checked out by</p>
+            <p className="text-xl font-bold mt-1">{checkout.playerName}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Since {new Date(checkout.checkedOutAt).toLocaleString()}
+            </p>
+          </div>
+          <div className="space-y-3">
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="Staff PIN to return"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleReturn()}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+            />
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button
+              onClick={handleReturn}
+              disabled={loading || !pin}
+              className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-semibold py-3 rounded-lg"
+            >
+              {loading ? "Returning..." : "Return Device"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <form onSubmit={handleCheckout} className="space-y-4">
+          <div className="bg-green-950/40 border border-green-800 rounded-xl p-3 text-sm text-green-300 text-center">
+            ✓ This device is available
+          </div>
+          <input
+            type="text"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            placeholder="Your full name"
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+            required
+            autoFocus
+            autoComplete="name"
+          />
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold py-3 rounded-lg"
+          >
+            {loading ? "Checking out..." : "Check Out"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}

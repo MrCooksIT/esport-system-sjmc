@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Device {
+  id        Int        @id @default(autoincrement())
+  name      String
+  type      String     // "keyboard" or "mouse"
+  active    Boolean    @default(true)
+  checkouts Checkout[]
+}
+
+model Checkout {
+  id           Int       @id @default(autoincrement())
+  deviceId     Int
+  device       Device    @relation(fields: [deviceId], references: [id])
+  playerName   String
+  checkedOutAt DateTime  @default(now())
+  returnedAt   DateTime?
+}
