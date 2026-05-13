@@ -12,11 +12,13 @@ async function main() {
     { name: "Keyboard #3", type: "keyboard" },
     { name: "Keyboard #4", type: "keyboard" },
     { name: "Keyboard #5", type: "keyboard" },
+    { name: "Keyboard #6", type: "keyboard" },
     { name: "Mouse #1", type: "mouse" },
     { name: "Mouse #2", type: "mouse" },
     { name: "Mouse #3", type: "mouse" },
     { name: "Mouse #4", type: "mouse" },
     { name: "Mouse #5", type: "mouse" },
+    { name: "Mouse #6", type: "mouse" },
   ];
 
   for (const device of devices) {
