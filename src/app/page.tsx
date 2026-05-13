@@ -134,7 +134,7 @@ export default function Dashboard() {
                             <input
                               type="password"
                               inputMode="numeric"
-                              maxLength={6}
+                              maxLength={32}
                               placeholder="Staff PIN"
                               value={pin}
                               onChange={(e) => setPin(e.target.value)}

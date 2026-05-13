@@ -101,7 +101,7 @@ export default function DevicePage({ params }: { params: Promise<{ id: string }>
             <input
               type="password"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={32}
               placeholder="Staff PIN to return"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
