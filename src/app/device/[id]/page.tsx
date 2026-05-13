@@ -12,6 +12,8 @@ export default function DevicePage({ params }: { params: Promise<{ id: string }>
   const [checkout, setCheckout] = useState<Checkout | null | undefined>(undefined);
   const [device, setDevice] = useState<Device | null>(null);
   const [playerName, setPlayerName] = useState("");
+  const [accessoriesOk, setAccessoriesOk] = useState(false);
+  const [conditionOk, setConditionOk] = useState(false);
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -37,11 +39,15 @@ export default function DevicePage({ params }: { params: Promise<{ id: string }>
     e.preventDefault();
     setError("");
     if (!playerName.trim()) return;
+    if (!accessoriesOk || !conditionOk) {
+      setError("Please confirm both checkboxes before checking out.");
+      return;
+    }
     setLoading(true);
     const res = await fetch("/api/checkouts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceId: Number(deviceId), playerName }),
+      body: JSON.stringify({ deviceId: Number(deviceId), playerName, accessoriesOk, conditionOk }),
     });
     setLoading(false);
     if (!res.ok) {
@@ -79,6 +85,7 @@ export default function DevicePage({ params }: { params: Promise<{ id: string }>
   }
 
   const icon = device.type === "keyboard" ? "⌨️" : "🖱️";
+  const canCheckout = playerName.trim().length > 0 && accessoriesOk && conditionOk;
 
   return (
     <div className="max-w-md mx-auto space-y-6">
@@ -123,24 +130,59 @@ export default function DevicePage({ params }: { params: Promise<{ id: string }>
           <div className="bg-green-950/40 border border-green-800 rounded-xl p-3 text-sm text-green-300 text-center">
             ✓ This device is available
           </div>
-          <input
-            type="text"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Your full name"
-            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
-            required
-            autoFocus
-            autoComplete="name"
-          />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Your full name</label>
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              placeholder="First and last name"
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500"
+              required
+              autoFocus
+              autoComplete="name"
+            />
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-gray-300">Before you take this device, confirm:</p>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={accessoriesOk}
+                onChange={(e) => setAccessoriesOk(e.target.checked)}
+                className="mt-0.5 w-5 h-5 accent-cyan-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-200">
+                All <strong>dongles and cables</strong> are present and accounted for
+              </span>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={conditionOk}
+                onChange={(e) => setConditionOk(e.target.checked)}
+                className="mt-0.5 w-5 h-5 accent-cyan-500 cursor-pointer"
+              />
+              <span className="text-sm text-gray-200">
+                The device is in <strong>good condition</strong> (no visible damage)
+              </span>
+            </label>
+          </div>
+
           {error && <p className="text-red-400 text-sm">{error}</p>}
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold py-3 rounded-lg"
+            disabled={loading || !canCheckout}
+            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-semibold py-3 rounded-lg transition-opacity"
           >
-            {loading ? "Checking out..." : "Check Out"}
+            {loading ? "Checking out..." : "Check Out Device"}
           </button>
+          {!canCheckout && playerName.trim().length > 0 && (
+            <p className="text-xs text-gray-500 text-center">Tick both boxes above to continue</p>
+          )}
         </form>
       )}
     </div>

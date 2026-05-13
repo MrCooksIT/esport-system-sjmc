@@ -3,22 +3,25 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Device {
   id        Int        @id @default(autoincrement())
   name      String
-  type      String     // "keyboard" or "mouse"
+  type      String
   active    Boolean    @default(true)
   checkouts Checkout[]
 }
 
 model Checkout {
-  id           Int       @id @default(autoincrement())
-  deviceId     Int
-  device       Device    @relation(fields: [deviceId], references: [id])
-  playerName   String
-  checkedOutAt DateTime  @default(now())
-  returnedAt   DateTime?
+  id             Int       @id @default(autoincrement())
+  deviceId       Int
+  device         Device    @relation(fields: [deviceId], references: [id])
+  playerName     String
+  accessoriesOk  Boolean   @default(true)
+  conditionOk    Boolean   @default(true)
+  checkedOutAt   DateTime  @default(now())
+  returnedAt     DateTime?
 }

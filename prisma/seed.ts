@@ -1,8 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
-const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   const devices = [
@@ -19,7 +17,11 @@ async function main() {
   ];
 
   for (const device of devices) {
-    await prisma.device.create({ data: device });
+    await prisma.device.upsert({
+      where: { id: devices.indexOf(device) + 1 },
+      update: {},
+      create: device,
+    });
   }
 
   console.log("Seeded", devices.length, "devices.");

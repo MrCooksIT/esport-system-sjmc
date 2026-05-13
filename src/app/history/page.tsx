@@ -6,6 +6,8 @@ type Device = { id: number; name: string; type: string };
 type Checkout = {
   id: number;
   playerName: string;
+  accessoriesOk: boolean;
+  conditionOk: boolean;
   checkedOutAt: string;
   returnedAt: string | null;
   device: Device;
@@ -60,12 +62,14 @@ export default function HistoryPage() {
       ) : filtered.length === 0 ? (
         <p className="text-gray-500 text-sm">No records found.</p>
       ) : (
-        <div className="rounded-xl border border-gray-800 overflow-hidden">
+        <div className="rounded-xl border border-gray-800 overflow-hidden overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-900 text-gray-400">
               <tr>
                 <th className="text-left px-4 py-3">Device</th>
                 <th className="text-left px-4 py-3">Player</th>
+                <th className="text-left px-4 py-3">Accessories</th>
+                <th className="text-left px-4 py-3">Condition</th>
                 <th className="text-left px-4 py-3">Checked Out</th>
                 <th className="text-left px-4 py-3">Returned</th>
                 <th className="text-left px-4 py-3">Duration</th>
@@ -75,26 +79,36 @@ export default function HistoryPage() {
             <tbody className="divide-y divide-gray-800">
               {filtered.map((co) => (
                 <tr key={co.id} className="bg-gray-950 hover:bg-gray-900">
-                  <td className="px-4 py-3 font-medium">
+                  <td className="px-4 py-3 font-medium whitespace-nowrap">
                     {co.device.type === "keyboard" ? "⌨️" : "🖱️"} {co.device.name}
                   </td>
-                  <td className="px-4 py-3">{co.playerName}</td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 whitespace-nowrap">{co.playerName}</td>
+                  <td className="px-4 py-3">
+                    {co.accessoriesOk ? (
+                      <span className="text-xs bg-green-900/50 text-green-400 px-2 py-0.5 rounded-full">OK</span>
+                    ) : (
+                      <span className="text-xs bg-red-900/50 text-red-400 px-2 py-0.5 rounded-full">Missing</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {co.conditionOk ? (
+                      <span className="text-xs bg-green-900/50 text-green-400 px-2 py-0.5 rounded-full">Good</span>
+                    ) : (
+                      <span className="text-xs bg-red-900/50 text-red-400 px-2 py-0.5 rounded-full">Damaged</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                     {new Date(co.checkedOutAt).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-gray-400">
+                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                     {co.returnedAt ? new Date(co.returnedAt).toLocaleString() : "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-400">{duration(co)}</td>
                   <td className="px-4 py-3">
                     {co.returnedAt ? (
-                      <span className="text-xs bg-green-900/50 text-green-400 px-2 py-0.5 rounded-full">
-                        Returned
-                      </span>
+                      <span className="text-xs bg-green-900/50 text-green-400 px-2 py-0.5 rounded-full">Returned</span>
                     ) : (
-                      <span className="text-xs bg-red-900/50 text-red-400 px-2 py-0.5 rounded-full">
-                        Out
-                      </span>
+                      <span className="text-xs bg-red-900/50 text-red-400 px-2 py-0.5 rounded-full">Out</span>
                     )}
                   </td>
                 </tr>

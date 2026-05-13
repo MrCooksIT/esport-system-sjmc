@@ -11,9 +11,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { deviceId, playerName } = await request.json();
+  const { deviceId, playerName, accessoriesOk, conditionOk } = await request.json();
   if (!deviceId || !playerName?.trim()) {
     return NextResponse.json({ error: "deviceId and playerName are required" }, { status: 400 });
+  }
+  if (!accessoriesOk || !conditionOk) {
+    return NextResponse.json({ error: "Please confirm accessories and device condition" }, { status: 400 });
   }
 
   const existing = await prisma.checkout.findFirst({
@@ -24,7 +27,12 @@ export async function POST(request: Request) {
   }
 
   const checkout = await prisma.checkout.create({
-    data: { deviceId: Number(deviceId), playerName: playerName.trim() },
+    data: {
+      deviceId: Number(deviceId),
+      playerName: playerName.trim(),
+      accessoriesOk: Boolean(accessoriesOk),
+      conditionOk: Boolean(conditionOk),
+    },
     include: { device: true },
   });
   return NextResponse.json(checkout, { status: 201 });
