@@ -8,7 +8,7 @@ export async function POST(
   const { id } = await params;
   const { pin } = await request.json();
 
-  if (pin !== process.env.ADMIN_PIN) {
+  if (pin !== (process.env.ADMIN_PIN ?? "1234")) {
     return NextResponse.json({ error: "Incorrect PIN" }, { status: 403 });
   }
 
