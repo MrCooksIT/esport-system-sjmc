@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 type Device = { id: number; name: string; type: string; active: boolean; checkouts: { id: number }[] };
 
@@ -59,30 +58,7 @@ export default function AdminPage() {
   }
 
   function printQR(device: Device) {
-    const url = `/api/devices/${device.id}/qr`;
-    const win = window.open("", "_blank");
-    if (!win) return;
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>QR - ${device.name}</title>
-          <style>
-            body { font-family: sans-serif; text-align: center; padding: 40px; }
-            img { width: 200px; height: 200px; }
-            h2 { margin-top: 16px; font-size: 20px; }
-            p { color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <img src="${url}" alt="QR Code" />
-          <h2>${device.name}</h2>
-          <p>Scan to check out / return</p>
-          <script>window.onload = () => window.print();</script>
-        </body>
-      </html>
-    `);
-    win.document.close();
+    window.open(`/print/${device.id}`, "_blank");
   }
 
   return (
